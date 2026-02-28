@@ -17,18 +17,18 @@ export class AvailablePlacesComponent implements OnInit {
 
   ngOnInit(): void {
     /**
-     * If you want to access the response object.
+     * Triggering by events makes subscribe be called multiple times.
      */
     const subscription = this.httpClient.get<Place[]>('http://localhost:8080/places',
 
       {
-        observe: 'response'
+        observe: 'events'
       }
     )
       .subscribe({
-        next: (response) => {
-          console.log(response);
-          console.log(response.body);
+        next: (event) => {
+          console.log(event);
+          //console.log(response.body);
         }
       });
     this.destroyRef.onDestroy(() => {
