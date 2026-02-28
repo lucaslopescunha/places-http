@@ -23,7 +23,7 @@ export class AvailablePlacesComponent implements OnInit {
     )
       .subscribe({
         next: (resData) => {
-          console.log(resData);
+          this.places.set(resData);
         }
       });
     this.destroyRef.onDestroy(() => {
