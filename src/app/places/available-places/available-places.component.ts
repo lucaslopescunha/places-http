@@ -1,9 +1,8 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { Place } from '../places.model';
 import { PlacesContainerComponent } from "../places-container/places-container.component";
 import { PlacesComponent } from "../places.component";
-import { HttpClient } from '@angular/common/http';
-import { catchError, throwError } from 'rxjs';
+import { Place } from '../places.model';
+import { PlacesService } from '../places.service';
 
 @Component({
   selector: 'app-available-places',
@@ -13,25 +12,20 @@ import { catchError, throwError } from 'rxjs';
 })
 export class AvailablePlacesComponent implements OnInit {
   places = signal<Place[] | undefined>(undefined);
-  private httpClient = inject(HttpClient);
-  private destroyRef = inject(DestroyRef);
   isFetching = signal(false);
   error = signal('');
+
+  private placesService = inject(PlacesService);
+  private destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     this.isFetching.set(true);
     /**
      * Back to work with the response data.
      */
-    const subscription = this.httpClient.get<Place[]>('http://localhost:8080/places')
-      .pipe(catchError((error) => {
-        console.log(error);
-        return throwError(
-          () => new Error(
-            'Something went wrong fetching the available places. Try again later.'
-          )
-        );
-      }))
+    const subscription = 
+      this.placesService
+      .loadAvailablePlaces()
       .subscribe({
         next: (resData) => {
           this.places.set(resData);
@@ -42,6 +36,18 @@ export class AvailablePlacesComponent implements OnInit {
         error: (error: Error) => {
           this.error.set(error.message  );
         }
+      });
+    this.destroyRef.onDestroy(() => {
+      subscription.unsubscribe();
+    });
+  }
+
+  onSelectPlace(selectedPlace: Place) {
+    console.log('chamado')
+    const subscription = this.placesService
+      .addPlaceToUserPlaces(selectedPlace)
+      .subscribe({
+        next: (resData) => console.log(resData)
       });
     this.destroyRef.onDestroy(() => {
       subscription.unsubscribe();
